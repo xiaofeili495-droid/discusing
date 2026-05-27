@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>产品评审室 Prototype</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <div class="brand-mark">PR</div>
+          <div>
+            <p class="eyebrow">Product Review Room</p>
+            <h1>产品评审室</h1>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-view-target="dashboard">
+            <span>工作台</span>
+            <small>最近评审与角色资产</small>
+          </button>
+          <button class="nav-item" data-view-target="create">
+            <span>新建评审室</span>
+            <small>上传 PRD 与生成角色</small>
+          </button>
+          <button class="nav-item" data-view-target="review">
+            <span>评审对话室</span>
+            <small>1 vs N 需求评审</small>
+          </button>
+          <button class="nav-item" data-view-target="roles">
+            <span>角色中心</span>
+            <small>沉淀生态位与关注重点</small>
+          </button>
+          <button class="nav-item" data-view-target="history">
+            <span>历史评审</span>
+            <small>会话记录与导出</small>
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <p>本原型聚焦个人产品经理的需求评审工作流。</p>
+          <button class="ghost-button" id="quick-start">继续上次评审</button>
+        </div>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">AI Review Copilot</p>
+            <h2 id="view-title">工作台</h2>
+          </div>
+
+          <div class="topbar-actions">
+            <label class="search-field">
+              <span>搜索</span>
+              <input type="text" placeholder="角色、评审主题、导出记录" />
+            </label>
+            <span class="status-chip soft" id="api-status">已载入本地原型数据</span>
+            <button class="ghost-button" id="export-from-top">导出记录</button>
+          </div>
+        </header>
+
+        <section class="view active" data-view="dashboard">
+          <section class="hero-card">
+            <div>
+              <p class="eyebrow">需求评审，不止是聊天</p>
+              <h3>把 PRD、会议纪要和干系人视角放进同一个工作台里。</h3>
+              <p class="hero-copy">
+                上传材料，拉起虚拟评审团，提前暴露风险与分歧，并把角色生态位、
+                核心利益和关注重点沉淀成可复用资产。
+              </p>
+            </div>
+            <div class="hero-actions">
+              <button class="primary-button" data-goto="create">新建评审室</button>
+              <button class="ghost-button" data-goto="roles">进入角色中心</button>
+            </div>
+          </section>
+
+          <section class="grid-dashboard">
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Recent Rooms</p>
+                  <h3>最近评审室</h3>
+                </div>
+                <button class="ghost-button small" data-goto="history">查看全部</button>
+              </div>
+              <div class="room-list" id="recent-rooms"></div>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Role Assets</p>
+                  <h3>常用角色模板</h3>
+                </div>
+                <button class="ghost-button small" data-goto="roles">管理角色</button>
+              </div>
+              <div class="role-grid compact" id="favorite-roles"></div>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Export Log</p>
+                  <h3>最近导出</h3>
+                </div>
+              </div>
+              <div class="export-list" id="recent-exports"></div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view" data-view="create">
+          <section class="section-stack">
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Step 1</p>
+                  <h3>基础信息</h3>
+                </div>
+                <span class="status-chip">MVP Flow</span>
+              </div>
+
+              <div class="form-grid">
+                <label class="field">
+                  <span>评审室名称</span>
+                  <input id="room-name" type="text" />
+                </label>
+                <label class="field">
+                  <span>评审主题</span>
+                  <input id="room-topic" type="text" />
+                </label>
+              </div>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Step 2</p>
+                  <h3>上传材料</h3>
+                </div>
+                <span class="subtle-text">支持 PDF / DOCX / MD / TXT</span>
+              </div>
+
+              <label class="upload-dropzone" for="file-input">
+                <input id="file-input" type="file" multiple />
+                <strong>拖拽或点击上传 PRD、背景材料、会议记录</strong>
+                <span>会议记录需为已整理文本，并标明说话人。</span>
+              </label>
+
+              <div class="file-table" id="file-list"></div>
+
+              <div class="speaker-detection">
+                <div class="panel-header slim">
+                  <h4>识别到的说话人</h4>
+                  <span class="status-chip soft">可用于一键生成角色</span>
+                </div>
+                <div class="chip-group" id="speaker-chips"></div>
+              </div>
+
+              <div class="transcript-preview">
+                <div class="panel-header slim">
+                  <h4>会议记录解析预览</h4>
+                  <button class="ghost-button small" id="toggle-transcript">展开详情</button>
+                </div>
+                <div class="transcript-panel collapsed" id="transcript-panel"></div>
+              </div>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Step 3</p>
+                  <h3>角色配置</h3>
+                </div>
+                <button class="ghost-button small" id="generate-roles">从会议记录生成角色</button>
+              </div>
+
+              <div class="role-config-layout">
+                <div>
+                  <h4 class="section-subtitle">预置模板</h4>
+                  <div class="role-grid" id="preset-role-list"></div>
+                </div>
+                <div>
+                  <h4 class="section-subtitle">生成角色草稿 / 已选角色</h4>
+                  <div class="role-grid" id="generated-role-list"></div>
+                </div>
+              </div>
+            </article>
+
+            <article class="panel-card">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Step 4</p>
+                  <h3>我的评审风格</h3>
+                </div>
+              </div>
+
+              <div class="preference-grid">
+                <div class="preference-block">
+                  <span>关注倾向</span>
+                  <div class="chip-group selectable" data-pref-group="focus"></div>
+                </div>
+                <div class="preference-block">
+                  <span>表达方式</span>
+                  <div class="chip-group selectable" data-pref-group="tone"></div>
+                </div>
+                <div class="preference-block">
+                  <span>提问习惯</span>
+                  <div class="chip-group selectable" data-pref-group="habit"></div>
+                </div>
+              </div>
+
+              <div class="sticky-actions">
+                <button class="ghost-button">保存草稿</button>
+                <button class="primary-button" id="launch-review">开始评审</button>
+              </div>
+            </article>
+          </section>
+        </section>
+
+        <section class="view" data-view="review">
+          <div class="review-layout">
+            <aside class="panel-card review-sidebar">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">Review Brief</p>
+                  <h3 id="review-room-title"></h3>
+                </div>
+              </div>
+
+              <div class="summary-stack">
+                <div>
+                  <span class="caption">当前主题</span>
+                  <p id="review-topic"></p>
+                </div>
+                <div>
+                  <span class="caption">上传材料</span>
+                  <div class="mini-list" id="review-files"></div>
+                </div>
+                <div>
+                  <span class="caption">参与角色</span>
+                  <div class="mini-list" id="review-selected-roles"></div>
+                </div>
+              </div>
+            </aside>
+
+            <section class="panel-card review-conversation">
+              <div class="panel-header">
+                <div>
+                  <p class="eyebrow">1 vs N Review</p>
+                  <h3>评审对话室</h3>
+                </div>
+                <span class="status-chip" id="round-badge"></span>
+              </div>
+
+              <div class="round-stage-bar" id="round-stage-bar"></div>
+              <div class="conversation-list" id="conversation-list"></div>
+
+              <div class="composer">
+                <textarea
+                  id="composer-input"
+                  rows="3"
+                  placeholder="输入你想抛给评审团的问题，例如：这个方案最大的风险是什么？"
+                ></textarea>
+                <div class="composer-actions">
+                  <div class="quick-prompts">
+                    <button class="ghost-button small" data-prompt="请指出最大风险">请指出最大风险</button>
+                    <button class="ghost-button small" data-prompt="请分别给出是否支持上线">请分别给出是否支持上线</button>
+                  </div>
+                  <button class="primary-button" id="send-round">发起本轮评审</button>
+                </div>
+              </div>
+            </section>
+
+            <aside class="panel-card review-inspector">
+              <div class="inspector-block">
+                <div class="panel-header slim">
+                  <h4>角色视角</h4>
+                </div>
+                <div class="inspector-role-list" id="inspector-role-list"></div>
+              </div>
+
+              <div class="inspector-block">
+                <div class="panel-header slim">
+                  <h4>自动总结</h4>
+                  <button class="ghost-button small" id="refresh-summary">刷新</button>
+                </div>
+                <div class="summary-box" id="summary-box"></div>
+              </div>
+
+              <div class="inspector-actions">
+                <button class="ghost-button" id="copy-summary">复制总结</button>
+                <button class="primary-button" id="export-from-review">导出记录</button>
+              </div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" data-view="roles">
+          <section class="panel-card">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Role Library</p>
+                <h3>角色中心</h3>
+              </div>
+              <div class="chip-group">
+                <span class="filter-chip active">预置模板</span>
+                <span class="filter-chip">我的角色</span>
+                <span class="filter-chip">来源于会议记录</span>
+              </div>
+            </div>
+
+            <div class="role-library-layout">
+              <div class="role-table" id="role-table"></div>
+              <aside class="role-detail-card" id="role-detail-card"></aside>
+            </div>
+          </section>
+        </section>
+
+        <section class="view" data-view="history">
+          <section class="panel-card">
+            <div class="panel-header">
+              <div>
+                <p class="eyebrow">Archive</p>
+                <h3>历史评审详情</h3>
+              </div>
+              <div class="topbar-actions">
+                <button class="ghost-button export-trigger">导出 Markdown</button>
+                <button class="primary-button export-trigger">导出 TXT</button>
+              </div>
+            </div>
+
+            <div class="history-layout">
+              <div class="history-main">
+                <div class="history-meta">
+                  <div>
+                    <span class="caption">评审室名称</span>
+                    <p id="history-room-title"></p>
+                  </div>
+                  <div>
+                    <span class="caption">时间</span>
+                    <p>2026-04-01 14:20</p>
+                  </div>
+                  <div>
+                    <span class="caption">参与角色</span>
+                    <p id="history-roles"></p>
+                  </div>
+                </div>
+
+                <div class="history-chat" id="history-chat"></div>
+              </div>
+
+              <div class="summary-box sticky-summary" id="history-summary"></div>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal-shell hidden" id="role-modal">
+      <div class="modal-backdrop" data-close-modal="role-modal"></div>
+      <div class="modal-card">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Role Editor</p>
+            <h3>编辑角色</h3>
+          </div>
+          <button class="ghost-button small" data-close-modal="role-modal">关闭</button>
+        </div>
+
+        <div class="modal-form-grid">
+          <label class="field">
+            <span>名称</span>
+            <input id="modal-role-name" type="text" />
+          </label>
+          <label class="field">
+            <span>生态位</span>
+            <input id="modal-role-niche" type="text" />
+          </label>
+          <label class="field modal-span-2">
+            <span>核心利益</span>
+            <input id="modal-role-interest" type="text" />
+          </label>
+          <label class="field modal-span-2">
+            <span>关注重点</span>
+            <input id="modal-role-focus" type="text" />
+          </label>
+          <label class="field modal-span-2">
+            <span>表达风格</span>
+            <input id="modal-role-style" type="text" />
+          </label>
+        </div>
+
+        <div class="sticky-actions">
+          <button class="ghost-button" data-close-modal="role-modal">取消</button>
+          <button class="primary-button" id="save-role-modal">保存角色</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-shell hidden" id="export-modal">
+      <div class="modal-backdrop" data-close-modal="export-modal"></div>
+      <div class="modal-card modal-card-narrow">
+        <div class="panel-header">
+          <div>
+            <p class="eyebrow">Export</p>
+            <h3>导出评审记录</h3>
+          </div>
+          <button class="ghost-button small" data-close-modal="export-modal">关闭</button>
+        </div>
+
+        <div class="export-options" id="export-options"></div>
+
+        <div class="export-checks">
+          <label><input id="export-summary" type="checkbox" checked /> 包含自动总结</label>
+          <label><input id="export-roles" type="checkbox" checked /> 包含参与角色</label>
+        </div>
+
+        <div class="sticky-actions">
+          <button class="ghost-button" data-close-modal="export-modal">取消</button>
+          <button class="primary-button" id="run-export">开始导出</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
